@@ -1,0 +1,7 @@
+/node_modules
+/public/.sass-cache
+/.idea/
+/views/old/
+*.log
+*.iml
+
