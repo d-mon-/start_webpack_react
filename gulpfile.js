@@ -18,17 +18,17 @@ var gulp = require('gulp'),
     args = require('yargs').argv;
 
 //path for compass
-var base_dir = './public/development/',
-    scss_dir = base_dir + 'scss/',
-    js_dir = base_dir + 'javascript/',
-    style_dir = base_dir + 'stylesheets/',
-    img_dir = base_dir + 'images/',
-    sprite_dir = base_dir + 'images-sprite/';
+var base_dir   = path.join(__dirname, 'public', 'development'),
+    scss_dir   = path.join(base_dir, 'scss'),
+    js_dir     = path.join(base_dir, 'javascript'),
+    style_dir  = path.join(base_dir, 'stylesheets'),
+    img_dir    = path.join(base_dir, 'images'),
+    sprite_dir = path.join(base_dir, 'images-sprite');
 
-var scss_files = scss_dir + '*.scss',
-    js_files = js_dir + '*.js',
-    css_files = style_dir + '*.css',
-    sprite_files = sprite_dir + '*.*';
+var scss_files   = path.join(scss_dir, '*.scss'),
+    js_files     = path.join(js_dir, '*.js'),
+    css_files    = path.join(style_dir, '*.css'),
+    sprite_files = path.join(sprite_dir,  '*.*');
 
 //environment variables
 var env = (args.env === 'production') ? 'production' : 'development',
