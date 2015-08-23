@@ -14,48 +14,40 @@ var gulp = require('gulp'),
     livereload = require('gulp-livereload'),
     plumber = require('gulp-plumber'),
     browserify = require('gulp-browserify'),
-    env = process.env.NODE_ENV || 'development';
+    ifelse = require('gulp-if-else'),
+    args = require('yargs').argv;
 
-//the title and icon that will be used for the Grunt notifications
-var notifyInfo = {
-    title: 'Gulp'
-};
+var env = (args.env === 'production') ? 'production' : 'development',
+    isProd = (args.env === 'production');
+
+
 //error notification settings for plumber
 var plumberErrorHandler = {
     errorHandler: notify.onError({
-        title: notifyInfo.title,
+        title: 'Gulp',
         message: "Error: <%= error.message %>"
     })
 };
 
 //style
-gulp.task('compass-dev', function () {
-    gulp.src('./public/scss/**/*.scss')
+gulp.task('compass', function () {
+    gulp.src('./assets/scss/**/*.scss')
         .pipe(plumber(plumberErrorHandler))
-        .pipe(compass({
-            css: 'public/stylesheets',
-            sass: 'public/scss',
-            image: 'public/image',
-            sourcemap: true
-        }))
+        .pipe(
+            compass({
+                css: './public/development/stylesheets',
+                sass: './public/development/scss',
+                image: './public/development/images',
+                generated_images_path : './public/' + env + '/images',
+                noCache: !isProd,
+                sourcemap: !isProd
+            })
+        )
         .pipe(autoprefixer('last 2 version'))
-        .pipe(gulp.dest('app/assets/temp'))
+        .pipe(ifelse(isProd, minifycss))
+        .pipe(ifelse(isProd, function () { return rename({ suffix: '.min' }); }))
+        .pipe(gulp.dest('./public/' + env + '/stylesheets'))
         .pipe(livereload());
-});
-
-//style
-gulp.task('compass-prod', function () {
-    gulp.src('./public/scss/**/*.scss')
-        .pipe(plumber(plumberErrorHandler))
-        .pipe(compass({
-            css: 'public/stylesheets',
-            sass: 'public/scss',
-            image: 'public/image'
-        }))
-        .pipe(autoprefixer('last 2 version'))
-        .pipe(rename({ suffix: '.min' }))
-        .pipe(minifycss())
-        .pipe(gulp.dest('app/assets/temp'));
 });
 
 //react script
@@ -65,13 +57,21 @@ gulp.task('react-scripts', function () {
             debug: true,
             transform: [ 'reactify' ]
         }))
-        .pipe(uglify())
-        .pipe(gulp.dest('./public/javascripts'));
+        .pipe(ifelse(
+            isProd,
+            uglify
+        ))
+        .pipe(gulp.dest('./public/' + env + '/javascripts'))
+        .pipe(livereload());
 });
 
 //watch
 gulp.task('watch-files', function () {
     livereload.listen();
     //watch .scss files
-    gulp.watch('src/scss/**/*.scss', ['compass-dev']);
+    gulp.watch('asstes/scss/**/*.scss', ['compass']);
+    gulp.watch('app/**/*.js', ['react-scripts']);
 });
+
+
+gulp.task('default', ['compass', 'react-scripts']);

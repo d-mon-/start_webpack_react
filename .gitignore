@@ -1,7 +1,12 @@
-/node_modules
-/public/.sass-cache
+/node_modules/
+/.sass-cache/
 /.idea/
-/views/old/
+/public/development/javascripts/
+/public/development/stylesheets/
+/public/production/
+
 *.log
 *.iml
+*.css.map
+*.css
 
