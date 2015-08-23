@@ -17,11 +17,25 @@ var gulp = require('gulp'),
     ifelse = require('gulp-if-else'),
     args = require('yargs').argv;
 
+//path for compass
+var base_dir = './public/development/',
+    scss_dir = base_dir + 'scss/',
+    js_dir = base_dir + 'javascript/',
+    style_dir = base_dir + 'stylesheets/',
+    img_dir = base_dir + 'images/',
+    sprite_dir = base_dir + 'images-sprite/';
+
+var scss_files = scss_dir + '*.scss',
+    js_files = js_dir + '*.js',
+    css_files = style_dir + '*.css',
+    sprite_files = sprite_dir + '*.*';
+
+//environment variables
 var env = (args.env === 'production') ? 'production' : 'development',
     isProd = (args.env === 'production');
 
 
-//error notification settings for plumber
+//plumber's notification setting
 var plumberErrorHandler = {
     errorHandler: notify.onError({
         title: 'Gulp',
@@ -29,28 +43,34 @@ var plumberErrorHandler = {
     })
 };
 
-//style
+//generate css from scss files with compass
 gulp.task('compass', function () {
-    gulp.src('./assets/scss/**/*.scss')
+    gulp.src(scss_files)
         .pipe(plumber(plumberErrorHandler))
         .pipe(
             compass({
-                css: './public/development/stylesheets',
-                sass: './public/development/scss',
-                image: './public/development/images',
-                generated_images_path : './public/' + env + '/images',
-                noCache: !isProd,
-                sourcemap: !isProd
+                css: style_dir,
+                sass: scss_dir,
+                image: img_dir,
+                generated_images_path : sprite_dir,
+                sourcemap: true
             })
         )
         .pipe(autoprefixer('last 2 version'))
-        .pipe(ifelse(isProd, minifycss))
-        .pipe(ifelse(isProd, function () { return rename({ suffix: '.min' }); }))
-        .pipe(gulp.dest('./public/' + env + '/stylesheets'))
+        .pipe(minifycss())
+        .pipe(rename({ suffix: '.min' }))
+        .pipe(gulp.dest(style_dir))
         .pipe(livereload());
 });
 
-//react script
+//copy dev files to production
+gulp.task('copyFilesToProd', function () {
+    gulp.src([js_files, css_files, sprite_files], {base: base_dir})
+        .pipe(gulp.dest('./public/production/'));
+});
+
+
+//generate client-bundle of react files
 gulp.task('react-scripts', function () {
     gulp.src(['app/main.js'])
         .pipe(browserify({
@@ -65,13 +85,13 @@ gulp.task('react-scripts', function () {
         .pipe(livereload());
 });
 
-//watch
+//watch scss and react files
 gulp.task('watch-files', function () {
     livereload.listen();
     //watch .scss files
-    gulp.watch('asstes/scss/**/*.scss', ['compass']);
+    gulp.watch(scss_files, ['compass']);
     gulp.watch('app/**/*.js', ['react-scripts']);
 });
 
-
-gulp.task('default', ['compass', 'react-scripts']);
+//default task
+gulp.task('default', ['compass', 'copyFilesToProd', 'react-scripts']);
