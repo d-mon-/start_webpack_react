@@ -4,6 +4,38 @@ var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
 var bodyParser = require('body-parser');
+
+
+
+var mongoose = require('mongoose'),
+    db = mongoose.connect('mongodb://localhost/blog_test');
+var Schema = mongoose.Schema;
+var db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function () {
+    var userSchema = new Schema({
+        'email': String
+    }, { _id:false, autoIndex: false});
+    mongoose.model('users', userSchema);
+    var User = mongoose.model('users');
+
+    var user = new User();
+    user.email = "test@test.test";
+    console.log(user);
+    user.save(function (err, doc) {
+        console.log(err, doc);
+        if (err) { throw err; }
+        console.log('success');
+        User.find({email: doc.email}, function (err, docs) {
+            console.log(err);
+            if (err) { throw err; }
+            console.log(docs);
+        });
+    });
+});
+
+
+
 require("node-jsx").install();
 
 
